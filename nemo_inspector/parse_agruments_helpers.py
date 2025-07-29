@@ -172,9 +172,8 @@ def convert_to_nested_dict(flat_dict: Dict):
 
 
 def args_preproccessing(args: Dict):
-    if args["dataset"] is None and args["split"] is None and args["input_file"] is None:
-        args["dataset"] = UNDEFINED
-        args["split"] = UNDEFINED
+    if args["prompt_format"] == 'ns' and args["prompt_config"] is None:
+        args["prompt_config"] = UNDEFINED
 
     if "server_type" not in args["server"]:
         args["server"]["server_type"] = UNDEFINED
@@ -227,16 +226,16 @@ def args_postproccessing(args):
     args["prompt"] = dataclasses.asdict(prompt_config_path)
 
     for separator_type, separator in CODE_SEPARATORS.items():
-        if not args["prompt"]["template"][separator_type]:
-            args["prompt"]["template"][separator_type] = separator
+        if not args["prompt"]["code_tags"][separator_type]:
+            args["prompt"]["code_tags"][separator_type] = separator
 
     args["inspector_params"]["code_separators"] = (
-        args["prompt"]["template"][CODE_BEGIN],
-        args["prompt"]["template"][CODE_END],
+        args["prompt"]["code_tags"][CODE_BEGIN],
+        args["prompt"]["code_tags"][CODE_END],
     )
     args["inspector_params"]["code_output_separators"] = (
-        args["prompt"]["template"][CODE_OUTPUT_BEGIN],
-        args["prompt"]["template"][CODE_OUTPUT_END],
+        args["prompt"]["code_tags"][CODE_OUTPUT_BEGIN],
+        args["prompt"]["code_tags"][CODE_OUTPUT_END],
     )
 
     args["retrieval_fields"] = get_specific_fields(args, RETRIEVAL_FIELDS)
