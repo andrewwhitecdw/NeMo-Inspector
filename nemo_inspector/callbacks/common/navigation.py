@@ -43,11 +43,11 @@ def nav_click(url: str) -> Tuple[html.Div, bool, bool]:
     elif url == "/analyze":
         config = current_app.config["nemo_inspector"]
         config["inspector_params"]["code_separators"] = (
-            config["prompt"]["template"][CODE_BEGIN],
-            config["prompt"]["template"][CODE_END],
+            config["prompt"]["code_tags"][CODE_BEGIN],
+            config["prompt"]["code_tags"][CODE_END],
         )
         config["inspector_params"]["code_output_separators"] = (
-            config["prompt"]["template"][CODE_OUTPUT_BEGIN],
-            config["prompt"]["template"][CODE_OUTPUT_END],
+            config["prompt"]["code_tags"][CODE_OUTPUT_BEGIN],
+            config["prompt"]["code_tags"][CODE_OUTPUT_END],
         )
         return get_compare_test_layout(), False, True
