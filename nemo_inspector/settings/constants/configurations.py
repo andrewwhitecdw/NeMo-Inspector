@@ -21,7 +21,27 @@ CODE_SEPARATORS = {
 }
 DATA_PAGE_SIZE = 10
 EXTRA_FIELDS = ["page_index", "file_name"]
-IGNORE_FIELDS = ["stop_phrases", "used_prompt", "server_type"]
+IGNORE_FIELDS = [
+    "stop_phrases",
+    "used_prompt",
+    "server_type",
+    "max_samples",
+    "skip_filled",
+    "max_concurrent_requests",
+    "num_chunks",
+    "chunk_id",
+    "add_generation_stats",
+    "count_prompt_tokens",
+    "generation_key",
+    "async_position_key",
+    "dry_run",
+    "genselect",
+    "enable_litellm_cache",
+    "chat_template_kwargs",
+    "generation_dir",
+    "num_initial_solutions",
+    "repetition_penalty",
+]
 PARAMS_TO_REMOVE = [
     "output_file",
     "dataset",
