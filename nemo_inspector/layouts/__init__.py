@@ -34,11 +34,6 @@ from nemo_inspector.layouts.common_layouts import (
     get_text_modes_layout,
 )
 
-from nemo_inspector.layouts.inference_page_layouts.utils import (
-    get_input_group_layout,
-    get_text_area_layout,
-    get_utils_field_representation,
-)
 from nemo_inspector.layouts.analyze_page_layouts.table_layouts import (
     get_detailed_info_table_column,
     get_filter_modal_layout,
@@ -47,14 +42,4 @@ from nemo_inspector.layouts.analyze_page_layouts.table_layouts import (
     get_single_prompt_output_layout,
     get_short_info_table_layout,
     get_detailed_info_table_content,
-)
-from nemo_inspector.layouts.inference_page_layouts.model_response_layout import (
-    get_results_content_layout,
-)
-from nemo_inspector.layouts.inference_page_layouts.base_layouts import (
-    get_few_shots_by_id_layout,
-    get_few_shots_layout,
-    get_inference_layout,
-    get_query_params_layout,
-    get_utils_layout,
 )

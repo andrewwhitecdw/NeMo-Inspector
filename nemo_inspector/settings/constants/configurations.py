@@ -21,34 +21,6 @@ CODE_SEPARATORS = {
 }
 DATA_PAGE_SIZE = 10
 EXTRA_FIELDS = ["page_index", "file_name"]
-IGNORE_FIELDS = ["stop_phrases", "used_prompt", "server_type"]
-PARAMS_TO_REMOVE = [
-    "output_file",
-    "dataset",
-    "split",
-    "retriever",
-    "_context_template",
-    "save_generations_path",
-]
-RETRIEVAL_FIELDS = [
-    "max_retrieved_chars_field",
-    "retrieved_entries",
-    "retrieval_file",
-    "retrieval_field",
-    "retrieved_few_shots",
-    "max_retrieved_chars",
-    "randomize_retrieved_entries",
-]
-SEPARATOR_DISPLAY = "."
-SEPARATOR_ID = "->"
-SETTING_PARAMS = [
-    "server",
-    "sandbox",
-    "output_file",
-    "inspector_params",
-    "types",
-    "stop_phrases",
-]
 STATS_KEYS = [
     "question_index",
     "problem",

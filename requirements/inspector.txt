@@ -20,4 +20,3 @@ joblib
 pandas
 pygments
 sshtunnel_requests
-nemo_skills @ git+https://github.com/NVIDIA/NeMo-Skills.git # working commit d2e971f

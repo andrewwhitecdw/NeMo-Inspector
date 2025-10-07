@@ -1,13 +1,6 @@
 # NeMo Inspector
 
-NeMo Inspector is a tool designed to help you analyze Large Language Model (LLM) generations. It provides two main pages:
-
-- **Inference Page:** Interactively generate and analyze model responses.
-- **Analyze Page:** Explore and manipulate existing generations, apply filters, sorting criteria, and compute statistics.
-
-## About the NeMo Inspector
-
-The Inference page allows you to experiment with model prompts and responses in real-time, adjusting various parameters. The Analyze page lets you load previously generated outputs and apply filtering, sorting, labeling, and statistic calculations for in-depth exploration.
+NeMo Inspector is a tool designed to help you analyze Large Language Model (LLM) generations. It lets you explore and manipulate existing generations, apply filters, sorting criteria, and compute statistics.
 
 ## Prerequisites
 
@@ -25,21 +18,12 @@ The Inference page allows you to experiment with model prompts and responses in 
 
 This will start a local server that you can access through your browser.
 
-## Inference Page
-
-The Inference page allows you to generate responses using an LLM and analyze them immediately. It supports two generation modes:
-
-- **Prompt-based Mode:** You write the entire prompt that will be sent to the model.
-- **Template-based Mode:** You select from predefined templates, fill in placeholders, and let the tool automatically construct the final prompt.
-
-The Inference page utilizes [NeMo-Skills](https://github.com/NVIDIA/NeMo-Skills) pipelines for inference.
-
 ## Analyze Page
 
 The Analyze page helps you work with pre-generated outputs. To use it, provide paths to the generation files using command-line arguments. For example:
 
 ```shell
-nemo_inspector --inspector_params.model_prediction \
+nemo_inspector --model_prediction \
   generation1='/path/to/generation1/output-greedy.jsonl' \
   generation2='/path/to/generation2/output-rs*.jsonl'
 ```

@@ -12,42 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple
-
 from dash import html
 from dash.dependencies import Input, Output
 from flask import current_app
 
 from nemo_inspector.callbacks import app
-from nemo_inspector.layouts import get_compare_test_layout, get_inference_layout
+from nemo_inspector.layouts import get_compare_test_layout
 from nemo_inspector.settings.constants import (
     CODE_BEGIN,
     CODE_END,
     CODE_OUTPUT_BEGIN,
     CODE_OUTPUT_END,
 )
+from nemo_inspector.settings.constants.configurations import CODE_SEPARATORS
 
 
 @app.callback(
-    [
-        Output("page_content", "children"),
-        Output("run_mode_link", "active"),
-        Output("analyze_link", "active"),
-    ],
+    Output("page_content", "children"),
     Input("url", "pathname"),
-    prevent_initial_call=True,
 )
-def nav_click(url: str) -> Tuple[html.Div, bool, bool]:
-    if url == "/":
-        return get_inference_layout(), True, False
-    elif url == "/analyze":
-        config = current_app.config["nemo_inspector"]
-        config["inspector_params"]["code_separators"] = (
-            config["prompt"]["code_tags"][CODE_BEGIN],
-            config["prompt"]["code_tags"][CODE_END],
-        )
-        config["inspector_params"]["code_output_separators"] = (
-            config["prompt"]["code_tags"][CODE_OUTPUT_BEGIN],
-            config["prompt"]["code_tags"][CODE_OUTPUT_END],
-        )
-        return get_compare_test_layout(), False, True
+def nav_click(url: str) -> html.Div:
+    config = current_app.config["nemo_inspector"]
+    config["code_separators"] = (
+        config["code_tags"][CODE_BEGIN],
+        config["code_tags"][CODE_END],
+    )
+    config["code_output_separators"] = (
+        config["code_tags"][CODE_OUTPUT_BEGIN],
+        config["code_tags"][CODE_OUTPUT_END],
+    )
+
+    return get_compare_test_layout()

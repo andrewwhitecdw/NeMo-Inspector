@@ -13,28 +13,12 @@
 # limitations under the License.
 
 import functools
-import inspect
 import json
 import logging
 import os
 import re
 from collections import defaultdict
-from dataclasses import fields, is_dataclass
-from types import NoneType, UnionType
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    Union,
-    get_args,
-    get_origin,
-    get_type_hints,
-)
+from typing import Callable, Dict, List, Optional, Set, Tuple, Union, get_origin
 
 from flask import current_app
 from joblib import Parallel, delayed
@@ -45,20 +29,11 @@ from nemo_inspector.settings.constants import (
     ERROR_MESSAGE_TEMPLATE,
     FILE_NAME,
     GENERAL_STATS,
-    IGNORE_FIELDS,
     INLINE_STATS,
-    PARAMS_TO_REMOVE,
     QUESTION_FIELD,
-    RETRIEVAL_FIELDS,
-    SEPARATOR_DISPLAY,
-    SETTING_PARAMS,
     STATS_KEYS,
     UNDEFINED,
 )
-
-from nemo_skills.evaluation.metrics.utils import is_correct_judgement
-from nemo_skills.prompt.few_shot_examples import examples_map
-from nemo_skills.prompt.utils import PromptConfig, PromptTemplate
 
 custom_stats = {}
 general_custom_stats = {}
@@ -70,10 +45,6 @@ stats_raw = {INLINE_STATS: {CUSTOM: ""}, GENERAL_STATS: {CUSTOM: ""}}
 
 dataset_data = []
 labels = []
-
-
-def get_examples_map() -> Set:
-    return examples_map
 
 
 def get_editable_rows() -> Set:
@@ -135,11 +106,11 @@ def parse_model_answer(answer: str) -> List[Dict]:
     config = current_app.config["nemo_inspector"]
     code_start, code_end = map(
         re.escape,
-        config["inspector_params"]["code_separators"],
+        config["code_separators"],
     )
     output_start, output_end = map(
         re.escape,
-        config["inspector_params"]["code_output_separators"],
+        config["code_output_separators"],
     )
     code_pattern = re.compile(rf"{code_start}(.*?){code_end}", re.DOTALL)
     code_output_pattern = re.compile(
@@ -204,94 +175,18 @@ def get_dataset_sample(index: int, dataset: str) -> Tuple[Dict, int]:
     return test, index
 
 
-def get_values_from_input_group(children: Iterable) -> Dict:
-    values = {}
-    for child in children:
-        for input_group_child in child["props"]["children"]:
-            if (
-                "id" in input_group_child["props"].keys()
-                and "value" in input_group_child["props"].keys()
-            ):
-                type_function = str
-                value = input_group_child["props"]["value"]
-                id = (
-                    input_group_child["props"]["id"]["id"]
-                    if isinstance(input_group_child["props"]["id"], Dict)
-                    else input_group_child["props"]["id"]
-                )
-                if value is None:
-                    values[id] = None
-                    continue
-                if str(value).isdigit() or str(value).replace("-", "", 1).isdigit():
-                    type_function = int
-                elif str(value).replace(".", "", 1).replace("-", "", 1).isdigit():
-                    type_function = float
-
-                values[id] = type_function(str(value).replace("\\n", "\n"))
-
-    return values
-
-
-def extract_query_params(query_params_ids: List[Dict], query_params: List[Dict]) -> Dict:
-    default_answer = {QUESTION_FIELD: "", "expected_answer": ""}
-    try:
-        query_params_extracted = {
-            param_id["id"]: param
-            for param_id, param in zip(query_params_ids, query_params)
-        }
-    except ValueError:
-        query_params_extracted = default_answer
-
-    return query_params_extracted or default_answer
-
-
-def get_utils_from_config_helper(cfg: Dict, display_path: bool = True) -> Dict:
-    config = {}
-    for key, value in sorted(cfg.items()):
-        if key in PARAMS_TO_REMOVE or key in SETTING_PARAMS:
-            continue
-        elif isinstance(value, Dict):
-            config = {
-                **config,
-                **{
-                    (
-                        key + SEPARATOR_DISPLAY
-                        if display_path and "template" in inner_key
-                        else ""
-                    )
-                    + inner_key: value
-                    for inner_key, value in get_utils_from_config_helper(value).items()
-                },
-            }
-        elif not isinstance(value, List):
-            config[key] = value
-    return config
-
-
-def get_utils_from_config(cfg: Dict, display_path: bool = True) -> Dict:
-    return {
-        SEPARATOR_DISPLAY.join(key.split(SEPARATOR_DISPLAY)[1:]) or key: value
-        for key, value in get_utils_from_config_helper(cfg, display_path).items()
-        if key not in RETRIEVAL_FIELDS + IGNORE_FIELDS
-    }
-
-
 def get_stats(all_files_data: List[Dict]) -> Tuple[float, float, float]:
     """Returns the percentage of correct, wrong, and no response answers in the given data.
 
     If not data is provided, returns -1 for all values.
     """
-    config = current_app.config["nemo_inspector"]["inspector_params"]
-
     correct = 0
     wrong = 0
     no_response = 0
     for data in all_files_data:
         if data.get("predicted_answer") is None:
             no_response += 1
-        elif not config["use_judgement"] and data.get("is_correct", False):
-            correct += 1
-        elif config["use_judgement"] and is_correct_judgement(data.get("judgement", "")):
+        elif data.get("is_correct", False):
             correct += 1
         else:
             wrong += 1
@@ -499,7 +394,7 @@ def is_detailed_answers_rows_key(key: str) -> bool:
 
 @functools.lru_cache(maxsize=1)
 def get_available_models() -> Dict:
-    config = current_app.config["nemo_inspector"]["inspector_params"]
+    config = current_app.config["nemo_inspector"]
     runs_storage = {}
     for model_name, files in config["model_prediction"].items():
         runs_storage[model_name] = {
@@ -507,66 +402,6 @@ def get_available_models() -> Dict:
         }
 
     return runs_storage
-
-
-def get_utils_dict(
-    name: Union[str, Dict], value: Union[str, int], id: Union[str, Dict] = None
-):
-    if id is None:
-        id = name
-    if name in current_app.config["nemo_inspector"]["types"].keys():
-        template = {
-            "props": {
-                "id": id,
-                "options": [
-                    {"label": value, "value": value}
-                    for value in current_app.config["nemo_inspector"]["types"][name]
-                ],
-                "value": current_app.config["nemo_inspector"]["types"][name][0],
-            },
-            "type": "Select",
-            "namespace": "dash_bootstrap_components",
-        }
-    elif isinstance(value, (int, float)):
-        float_params = {"step": 0.1} if isinstance(value, float) else {}
-        template = {
-            "props": {
-                "id": id,
-                "debounce": True,
-                "min": 0,
-                "type": "number",
-                "value": value,
-                **float_params,
-            },
-            "type": "Input",
-            "namespace": "dash_bootstrap_components",
-        }
-    else:
-        template = {
-            "props": {
-                "id": id,
-                "debounce": True,
-                "style": {"width": "100%"},
-                "value": value,
-            },
-            "type": "Textarea",
-            "namespace": "dash_bootstrap_components",
-        }
-    return {
-        "props": {
-            "children": [
-                {
-                    "props": {"children": name},
-                    "type": "InputGroupText",
-                    "namespace": "dash_bootstrap_components",
-                },
-                template,
-            ],
-            "className": "mb-3",
-        },
-        "type": "InputGroup",
-        "namespace": "dash_bootstrap_components",
-    }
 
 
 def get_file_id(file_names: List[str], files: List[Dict], column_id: str):
@@ -581,42 +416,6 @@ def get_file_id(file_names: List[str], files: List[Dict], column_id: str):
             file_id = i
             break
     return file_id
-
-
-def initialize_default(
-    cls: Union[PromptTemplate, PromptConfig], specification: Dict = {}
-) -> Union[PromptTemplate, PromptConfig]:
-    if not specification:
-        specification = {}
-
-    def get_default(field, specification: Dict = None):
-        if not specification:
-            specification = {}
-        _type = get_type_hints(cls)[field.name]
-        if is_dataclass(_type):
-            return initialize_default(
-                _type,
-                {
-                    **specification,
-                    **(
-                        specification.get(field.name, {})
-                        if isinstance(specification.get(field.name, {}), Dict)
-                        else {}
-                    ),
-                },
-            )
-        if isinstance(specification, Dict) and field.name in specification:
-            return specification[field.name]
-        else:
-            args = get_args(_type)
-            if len(args):
-                if NoneType in args:
-                    return None
-                else:
-                    return args[0]()
-            return (get_origin(_type) or _type)()
-
-    return cls(**{field.name: get_default(field, specification) for field in fields(cls)})
 
 
 def resolve_type(field_type):
@@ -640,40 +439,4 @@ def get_type_default(field_type):
 
 def resolve_union_or_any(field_type):
     """Resolve Union and Any types to concrete types"""
-    origin_type = get_origin(field_type)
-    if origin_type is UnionType:
-        args = get_args(field_type)
-        non_none_args = [arg for arg in args if arg is not type(None)]
-        return non_none_args[0] if non_none_args else str
-    elif field_type is Any:
-        return str
-    else:
-        return resolve_type(field_type)
-
-
-def get_init_params(cls):
-    params = {}
-
-    # Iterate through the class and its base classes in MRO
-    for base_cls in inspect.getmro(cls):
-        if base_cls is object:
-            continue  # Skip the base `object` class
-
-        # Get the __init__ method
-        init_method = base_cls.__init__
-        init_signature = inspect.signature(init_method)
-        type_hints = get_type_hints(init_method)
-
-        for name, param in init_signature.parameters.items():
-            if name in ["self", "args", "kwargs"] or name in params:
-                continue  # Skip 'self' and already processed parameters
-
-            # Determine default value
-            if param.default is not inspect.Parameter.empty:
-                # If a default value exists, use it
-                params[name] = param.default
-            else:
-                # If no default value, use the type initializer
-                param_type = type_hints.get(name, None)
-                params[name] = get_type_default(resolve_union_or_any(param_type))
-    return params
+    return resolve_type(field_type)

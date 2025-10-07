@@ -111,12 +111,13 @@ def filter_data(
         apply_on_filtered_data=(apply_on_filtered_data if apply_on_filtered_data else 0),
         models=models,
     )
+    rows = get_sorted_tables_layout(
+        base_model=base_model,
+        sorting_function=sorting_function,
+        models=models,
+    )
     return (
-        get_sorted_tables_layout(
-            base_model=base_model,
-            sorting_function=sorting_function,
-            models=models,
-        ),
+        rows,
         (
             html.Pre(f"Filtering function:\n{filter_function}")
             if not apply_on_filtered_data or not filtering_functions

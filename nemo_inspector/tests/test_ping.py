@@ -69,7 +69,7 @@ def chrome_driver():
 
 @pytest.mark.parametrize(
     ("element_id", "url"),
-    [("run_button", "/"), ("add_model", "/analyze")],
+    [("add_model", "/analyze")],
 )
 def test_dash_app_launch(chrome_driver, nemo_inspector_process, element_id, url):
     full_url = f"http://localhost:8080{url}"
