@@ -172,14 +172,11 @@ def convert_to_nested_dict(flat_dict: Dict):
 
 
 def args_preproccessing(args: Dict):
-    if args["prompt_format"] == 'ns' and args["prompt_config"] is None:
+    if args["prompt_format"] == "ns" and args["prompt_config"] is None:
         args["prompt_config"] = UNDEFINED
 
     if "server_type" not in args["server"]:
         args["server"]["server_type"] = UNDEFINED
-
-    if args["server"]["server_type"] != "openai" and args["prompt_template"] is None:
-        args["prompt_template"] = UNDEFINED
 
     return args
 
@@ -198,27 +195,12 @@ def args_postproccessing(args):
     conf_path = (
         args["prompt_config"] if os.path.isfile(str(args["prompt_config"])) else ""
     )
-    template_path = (
-        args["prompt_template"] if os.path.isfile(str(args["prompt_template"])) else ""
-    )
 
-    if not os.path.isfile(conf_path) and not os.path.isfile(template_path):
+    if not os.path.isfile(conf_path):
         prompt_config_path = initialize_default(PromptConfig, args.get("prompt", {}))
-    elif not os.path.isfile(conf_path):
-        specifications = {
-            **load_config(template_path),
-            **args.get("prompt", {}).get("template", {}),
-        }
-        prompt_config_path = initialize_default(PromptConfig, specifications)
-    elif not os.path.isfile(template_path):
-        specifications = {
-            **dataclasses.asdict(get_prompt(conf_path).config),
-            **args.get("prompt", {}).get("template", {}),
-        }
-        prompt_config_path = initialize_default(PromptConfig, specifications)
     else:
         specifications = {
-            **dataclasses.asdict(get_prompt(conf_path, template_path).config),
+            **dataclasses.asdict(get_prompt(conf_path).config),
             **args.get("prompt", {}).get("template", {}),
         }
         prompt_config_path = initialize_default(PromptConfig, specifications)

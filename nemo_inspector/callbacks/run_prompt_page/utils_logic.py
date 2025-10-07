@@ -58,44 +58,29 @@ from nemo_skills.prompt.utils import PromptConfig, get_prompt, load_config
         Output("js_container", "children", allow_duplicate=True),
         Output("js_trigger", "children", allow_duplicate=True),
     ],
-    [
-        Input("prompt_config", "value"),
-        Input("prompt_template", "value"),
-    ],
+    Input("prompt_config", "value"),
     State("js_trigger", "children"),
     prevent_initial_call=True,
 )
 def update_prompt_type(
-    config_path: Optional[str], prompt_template: str, js_trigger: str
+    config_path: Optional[str], js_trigger: str
 ) -> Union[NoUpdate, dbc.AccordionItem]:
-    if (
-        "used_prompt" in current_app.config["nemo_inspector"]["prompt"]
-        and (str(config_path), str(prompt_template))
-        == current_app.config["nemo_inspector"]["prompt"]["used_prompt"]
-    ):
+    used_prompt = current_app.config["nemo_inspector"]["prompt"].get("used_prompt", None)
+    if str(config_path) == str(used_prompt):
         output_len = len(
             get_utils_from_config(asdict(initialize_default(PromptConfig))).keys()
         )
         return [no_update] * (output_len + 2)
 
-    current_app.config["nemo_inspector"]["prompt"]["used_prompt"] = (
-        str(config_path),
-        str(prompt_template),
-    )
-    if not os.path.isfile(str(config_path)) and not os.path.isfile(str(prompt_template)):
+    current_app.config["nemo_inspector"]["prompt"]["used_prompt"] = str(config_path)
+    if not os.path.isfile(str(config_path)):
         output_len = len(
             get_utils_from_config(asdict(initialize_default(PromptConfig))).keys()
         )
         return [no_update] * (output_len + 2)
-    elif not os.path.isfile(str(config_path)):
-        prompt_config = initialize_default(PromptConfig, load_config(prompt_template))
-    elif not os.path.isfile(str(prompt_template)):
-        prompt_config = initialize_default(
-            PromptConfig, asdict(get_prompt(config_path).config)
-        )
     else:
         prompt_config = initialize_default(
-            PromptConfig, asdict(get_prompt(config_path, prompt_template).config)
+            PromptConfig, asdict(get_prompt(config_path).config)
         )
 
     current_app.config["nemo_inspector"]["prompt"][

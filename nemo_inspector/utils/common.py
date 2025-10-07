@@ -58,7 +58,7 @@ from nemo_inspector.settings.constants import (
 
 from nemo_skills.evaluation.metrics.utils import is_correct_judgement
 from nemo_skills.prompt.few_shot_examples import examples_map
-from nemo_skills.prompt.utils import PromptConfig, PromptTemplate
+from nemo_skills.prompt.utils import PromptConfig
 
 custom_stats = {}
 general_custom_stats = {}
@@ -583,9 +583,7 @@ def get_file_id(file_names: List[str], files: List[Dict], column_id: str):
     return file_id
 
 
-def initialize_default(
-    cls: Union[PromptTemplate, PromptConfig], specification: Dict = {}
-) -> Union[PromptTemplate, PromptConfig]:
+def initialize_default(cls: PromptConfig, specification: Dict = {}) -> PromptConfig:
     if not specification:
         specification = {}
 

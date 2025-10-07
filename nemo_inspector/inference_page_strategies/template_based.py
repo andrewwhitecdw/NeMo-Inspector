@@ -16,6 +16,7 @@ from typing import Dict, List
 
 import dash_bootstrap_components as dbc
 from dash import html
+from flask import current_app
 
 from nemo_inspector.settings.constants import TEMPLATES_BASED, SEPARATOR_ID
 from nemo_inspector.utils.common import get_dataset_sample
