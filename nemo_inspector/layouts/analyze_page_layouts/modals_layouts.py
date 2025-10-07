@@ -351,9 +351,7 @@ def get_save_dataset_modal_layout() -> html.Div:
                                     dbc.InputGroupText("save_path"),
                                     dbc.Input(
                                         value=os.path.join(
-                                            current_app.config["nemo_inspector"][
-                                                "inspector_params"
-                                            ]["save_generations_path"],
+                                            current_app.config["nemo_inspector"]["save_generations_path"],
                                             "default_name",
                                         ),
                                         id="save_path",

@@ -17,22 +17,10 @@ from dash import dcc, html
 
 
 def get_main_page_layout() -> html.Div:
-    nav_items = [
-        dbc.NavItem(
-            dbc.NavLink(
-                "Inference",
-                id="run_mode_link",
-                href="/",
-                active=True,
-            )
-        ),
-        dbc.NavItem(dbc.NavLink("Analyze", id="analyze_link", href="/analyze")),
-    ]
     return html.Div(
         [
             dcc.Location(id="url", refresh=False),
             dbc.NavbarSimple(
-                children=nav_items,
                 brand="NeMo Inspector",
                 sticky="top",
                 color="blue",

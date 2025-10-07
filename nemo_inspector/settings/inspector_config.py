@@ -12,26 +12,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import field
-from typing import Dict
+from dataclasses import dataclass, field
+from itertools import chain
+from pathlib import Path
+from typing import Dict, Iterable, List
 
-from nemo_skills.inference.generate import GenerateSolutionsConfig
-from nemo_skills.utils import nested_dataclass, unroll_files
+from nemo_inspector.settings.constants.configurations import CODE_SEPARATORS
 
 
-@nested_dataclass(kw_only=True)
-class BaseInspectorConfig:
+def _expand_paths(paths: Iterable[str]) -> List[str]:
+    expanded_files: List[str] = []
+    for path in paths:
+        expanded = Path(path).expanduser()
+        if any(char in str(expanded) for char in ["*", "?"]):
+            expanded_files.extend(sorted(map(str, expanded.parent.glob(expanded.name))))
+        elif expanded.is_dir():
+            expanded_files.extend(sorted(map(str, expanded.rglob("*.jsonl"))))
+        elif expanded.exists():
+            expanded_files.append(str(expanded))
+    return expanded_files
+
+
+def unroll_files(paths: Iterable[str]) -> List[str]:
+    return list(dict.fromkeys(chain.from_iterable(_expand_paths([path]) for path in paths)))
+
+
+@dataclass(kw_only=True)
+class InspectorConfig:
     model_prediction: Dict[str, str] = field(default_factory=dict)
     save_generations_path: str = "nemo_inspector/results/saved_generations"
-    use_judgement: bool = False
+    code_tags: Dict[str, str] = field(default_factory=lambda: CODE_SEPARATORS)
 
     def __post_init__(self):
         self.model_prediction = {
-            model_name: list(unroll_files(file_path.split(" ")))
+            model_name: unroll_files(file_path.split(" "))
             for model_name, file_path in self.model_prediction.items()
         }
-
-
-@nested_dataclass(kw_only=True)
-class InspectorConfig(GenerateSolutionsConfig):
-    inspector_params: BaseInspectorConfig = field(default_factory=BaseInspectorConfig)

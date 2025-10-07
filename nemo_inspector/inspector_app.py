@@ -14,19 +14,14 @@
 
 import sys
 from pathlib import Path
-import signal
 import argparse
 import dataclasses
-
-from nemo_skills.utils import setup_logging
-from nemo_skills.prompt.utils import PromptConfig
+import signal
 
 from nemo_inspector.parse_agruments_helpers import (
     add_arguments_from_dataclass,
     args_postproccessing,
-    convert_to_nested_dict,
     create_dataclass_from_args,
-    args_preproccessing,
 )
 
 sys.path.append(str(Path(__file__).parents[1]))
@@ -34,11 +29,10 @@ sys.path.append(str(Path(__file__).parents[1]))
 from nemo_inspector.layouts import get_main_page_layout
 
 from nemo_inspector.settings.inspector_config import InspectorConfig
+from nemo_inspector.settings.constants.configurations import CODE_SEPARATORS
 
 
 def main():
-    setup_logging(disable_hydra_logs=False)
-
     signal.signal(signal.SIGALRM, signal.SIG_IGN)
 
     parser = argparse.ArgumentParser(description="NeMo Inspector")
@@ -50,23 +44,13 @@ def main():
         use_type_defaults=True,
     )
 
-    add_arguments_from_dataclass(
-        parser,
-        PromptConfig,
-        prefix="prompt.",
-        use_default=argparse.SUPPRESS,
-        enforce_required=False,
-        use_type_defaults=True,
-    )
-
     args = parser.parse_args()
     args_dict = vars(args)
-    args_dict = args_preproccessing(args_dict)
 
     cfg = dataclasses.asdict(create_dataclass_from_args(InspectorConfig, args_dict))
-    cfg["prompt"] = convert_to_nested_dict(args_dict).get("prompt", {})
+    cfg.setdefault("code_tags", {})
+    cfg["code_tags"] = {**CODE_SEPARATORS, **cfg["code_tags"]}
     cfg = args_postproccessing(cfg)
-
     from nemo_inspector.callbacks import app
 
     app.server.config.update({"nemo_inspector": cfg})

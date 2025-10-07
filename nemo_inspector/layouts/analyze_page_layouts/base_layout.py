@@ -83,7 +83,7 @@ def get_compare_test_layout() -> html.Div:
             html.Pre(id="filtering_container"),
             html.Pre(id="sorting_container"),
             dcc.Loading(
-                children=dbc.Container(
+                dbc.Container(
                     id="loading_container", style={"display": "none"}, children=""
                 ),
                 type="circle",

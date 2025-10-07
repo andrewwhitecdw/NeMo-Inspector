@@ -28,4 +28,3 @@ app = Dash(
 
 import nemo_inspector.callbacks.common as common
 import nemo_inspector.callbacks.analyze_page as analyze_page
-import nemo_inspector.callbacks.run_prompt_page as run_prompt_page

@@ -12,30 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-from typing import Dict, Any, List, Optional, Type
 import argparse
 import dataclasses
+from typing import Any, Optional, Type
 
-from nemo_skills.prompt.utils import PromptConfig, get_prompt, load_config
-
-from nemo_inspector.settings.constants import (
-    CODE_BEGIN,
-    CODE_END,
-    CODE_OUTPUT_BEGIN,
-    CODE_OUTPUT_END,
-    CODE_SEPARATORS,
-    PARAMS_TO_REMOVE,
-    RETRIEVAL,
-    RETRIEVAL_FIELDS,
-    UNDEFINED,
-)
-from nemo_inspector.utils.common import (
-    get_type_default,
-    initialize_default,
-    get_examples_map,
-    resolve_union_or_any,
-)
+from nemo_inspector.utils.common import get_type_default, resolve_union_or_any
 
 
 class ParseDict(argparse.Action):
@@ -145,86 +126,7 @@ def create_dataclass_from_args(
     return dataclass_type(**init_kwargs)
 
 
-def get_specific_fields(dict_cfg: Dict, fields: List[Dict]) -> Dict:
-    retrieved_values = {}
-    for key, value in dict_cfg.items():
-        if key in fields:
-            retrieved_values[key] = value
-        if isinstance(value, Dict):
-            retrieved_values = {
-                **retrieved_values,
-                **get_specific_fields(value, fields),
-            }
-    return retrieved_values
-
-
-def convert_to_nested_dict(flat_dict: Dict):
-    nested_dict = {}
-    for flat_key, value in flat_dict.items():
-        parts = flat_key.split(".")
-        current_level = nested_dict
-        for part in parts[:-1]:
-            if part not in current_level:
-                current_level[part] = {}
-            current_level = current_level[part]
-        current_level[parts[-1]] = value
-    return nested_dict
-
-
-def args_preproccessing(args: Dict):
-    if args["prompt_format"] == "ns" and args["prompt_config"] is None:
-        args["prompt_config"] = UNDEFINED
-
-    if "server_type" not in args["server"]:
-        args["server"]["server_type"] = UNDEFINED
-
-    return args
-
-
 def args_postproccessing(args):
-    examples_types = list(get_examples_map().keys())
-
-    args["types"] = {
-        "examples_type": [UNDEFINED, RETRIEVAL] + examples_types,
-        "code_output_format": ["llama", "qwen"],
-        "retrieval_field": [""],
-        "max_retrieved_chars_field": [""],
-        "multi_turn_key": [UNDEFINED],
-    }
-
-    conf_path = (
-        args["prompt_config"] if os.path.isfile(str(args["prompt_config"])) else ""
-    )
-
-    if not os.path.isfile(conf_path):
-        prompt_config_path = initialize_default(PromptConfig, args.get("prompt", {}))
-    else:
-        specifications = {
-            **dataclasses.asdict(get_prompt(conf_path).config),
-            **args.get("prompt", {}).get("template", {}),
-        }
-        prompt_config_path = initialize_default(PromptConfig, specifications)
-
-    args["prompt"] = dataclasses.asdict(prompt_config_path)
-
-    for separator_type, separator in CODE_SEPARATORS.items():
-        if not args["prompt"]["code_tags"][separator_type]:
-            args["prompt"]["code_tags"][separator_type] = separator
-
-    args["inspector_params"]["code_separators"] = (
-        args["prompt"]["code_tags"][CODE_BEGIN],
-        args["prompt"]["code_tags"][CODE_END],
-    )
-    args["inspector_params"]["code_output_separators"] = (
-        args["prompt"]["code_tags"][CODE_OUTPUT_BEGIN],
-        args["prompt"]["code_tags"][CODE_OUTPUT_END],
-    )
-
-    args["retrieval_fields"] = get_specific_fields(args, RETRIEVAL_FIELDS)
-
-    args["input_file"] = str(args["input_file"])
-
-    for name in PARAMS_TO_REMOVE:
-        args.pop(name, None)
+    args["input_file"] = str(args.get("input_file", ""))
 
     return args
