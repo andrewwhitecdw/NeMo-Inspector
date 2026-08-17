@@ -400,9 +400,14 @@ def del_model(
     if not ctx.triggered[0]["value"]:
         return no_update, [no_update] * len(rows)
 
-    for i, id in enumerate(id_del):
-        if id["id"] == button_id:
+    index = None
+    for i, model_id in enumerate(id_del):
+        if model_id["id"] == button_id:
             index = i + 2
+            break
+
+    if index is None:
+        return no_update, [no_update] * len(rows)
 
     header.pop(index)
     for i, row in enumerate(rows):
