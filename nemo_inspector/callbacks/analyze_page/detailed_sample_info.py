@@ -579,6 +579,10 @@ def change_files_order(
             array_to_filter,
         )
     ]
-    file_selector_values[button_id] = file_selector_options[button_id][0]
+    file_selector_values[button_id] = (
+        file_selector_options[button_id][0]
+        if file_selector_options[button_id]
+        else file_selector_values[button_id]
+    )
 
     return file_selector_options, file_selector_values
