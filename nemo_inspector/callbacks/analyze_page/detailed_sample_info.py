@@ -465,6 +465,7 @@ def change_file(
         return [no_update] * len(table_data), no_update
 
     question_id = page_size * current_page + idx[0]
+    matched_button_id = None
     for trigger in ctx.triggered:
         try:
             button_id = model_ids.index(
@@ -477,6 +478,7 @@ def change_file(
         except ValueError:
             continue
 
+        matched_button_id = button_id
         model = models[button_id]
 
         file_id = get_file_id(file_names, get_table_data()[question_id][model], button_id)
@@ -497,7 +499,9 @@ def change_file(
                 compare_to=get_table_data()[question_id][models[0]][base_file_id],
             )
         )
-    return table_data, dummy_data + "1" if button_id == 0 else dummy_data
+    if matched_button_id is None:
+        return table_data, dummy_data
+    return table_data, dummy_data + "1" if matched_button_id == 0 else dummy_data
 
 
 @app.callback(
